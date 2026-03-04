@@ -1,0 +1,69 @@
+name: Branch Strategy Enforcement
+
+on:
+  pull_request:
+    branches:
+      - master
+      - staging
+      - release
+      - dev
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  enforce-branch-rules:
+    name: Enforce Branch Strategy
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check PR source branch rules
+        env:
+          TARGET: ${{ github.base_ref }}
+          SOURCE: ${{ github.head_ref }}
+        run: |
+          echo "PR: '${SOURCE}' → '${TARGET}'"
+
+          case "${TARGET}" in
+
+            dev)
+              # Only feature/* branches may target dev
+              if [[ "${SOURCE}" != feature/* ]]; then
+                echo "❌  PRs into 'dev' must come from a 'feature/*' branch (got '${SOURCE}')."
+                exit 1
+              fi
+              echo "✅  Feature branch targeting dev — OK."
+              ;;
+
+            release)
+              # release accepts only cherry-pick/* branches (individual commits promoted from dev)
+              if [[ "${SOURCE}" != cherry-pick/* ]]; then
+                echo "❌  PRs into 'release' must come from a 'cherry-pick/*' branch (got '${SOURCE}')."
+                echo "    Create a cherry-pick branch off 'release', apply the commit, then open a PR."
+                exit 1
+              fi
+              echo "✅  Cherry-pick branch targeting release — OK."
+              ;;
+
+            staging)
+              # staging only accepts cherry-pick/* branches or release
+              if [[ "${SOURCE}" != cherry-pick/* && "${SOURCE}" != release ]]; then
+                echo "❌  PRs into 'staging' must come from 'cherry-pick/*' or 'release' (got '${SOURCE}')."
+                exit 1
+              fi
+              echo "✅  Branch targeting staging — OK."
+              ;;
+
+            master)
+              # master only accepts merges from staging
+              if [[ "${SOURCE}" != staging ]]; then
+                echo "❌  PRs into 'master' must come from 'staging' (got '${SOURCE}')."
+                exit 1
+              fi
+              echo "✅  Staging targeting master — OK."
+              ;;
+
+            *)
+              echo "ℹ️  Target branch '${TARGET}' is not a protected main branch — skipping rule check."
+              ;;
+          esac
