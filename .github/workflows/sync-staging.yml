@@ -1,0 +1,43 @@
+name: Sync Staging with Master
+
+on:
+  push:
+    branches:
+      - master
+
+permissions:
+  contents: write
+
+jobs:
+  sync-staging:
+    name: Keep staging in sync with master
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Configure git
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Sync staging branch with master
+        run: |
+          git fetch origin master staging
+
+          MASTER_SHA=$(git rev-parse origin/master)
+          STAGING_SHA=$(git rev-parse origin/staging)
+
+          if [ "${MASTER_SHA}" = "${STAGING_SHA}" ]; then
+            echo "ℹ️  'staging' already matches 'master' (${MASTER_SHA}). No action needed."
+            exit 0
+          fi
+
+          echo "Resetting 'staging' (${STAGING_SHA}) to 'master' (${MASTER_SHA})..."
+          git checkout staging
+          git reset --hard origin/master
+          git push origin staging:refs/heads/staging
+          echo "✅ 'staging' is now in sync with 'master'."
