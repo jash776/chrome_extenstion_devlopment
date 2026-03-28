@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 440 280" width="440" height="280">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#4f46e5" />
+      <stop offset="100%" stop-color="#312e81" />
+    </linearGradient>
+  </defs>
+  <rect width="440" height="280" fill="url(#bg)" />
+  <text x="220" y="130" font-family="system-ui, sans-serif" font-size="38" font-weight="bold" fill="#ffffff" text-anchor="middle">PDF Unlocker</text>
+  <text x="220" y="175" font-family="system-ui, sans-serif" font-size="18" fill="#e0e7ff" text-anchor="middle">Secure • Private • 100% Offline</text>
+</svg>
